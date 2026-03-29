@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.log
+*.tmp
+.env
+.vscode/
+.idea/
+.DS_Store
+.electronignore
+Thumbs.db
+builder-debug.yml
+builder-effective-config.yaml

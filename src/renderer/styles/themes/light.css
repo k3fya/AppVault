@@ -1,0 +1,49 @@
+:root.light-theme {
+  --bg: #fdfdfd;
+  --bg-hover: #f6f6f6;
+  --bg-medium: #f2f2f2;
+  --bg-light: #fafafa;
+
+  --bg-error: rgba(233, 96, 96, 0.09);
+  --bg-success: rgba(126, 233, 96, 0.09);
+  --bg-buttons: #f2f2f2;
+  --settings-button-bg: #f0f0f0;
+  --settings-button-bg-hover: #e3e3e3;
+  --bg-key-recording: #efefef;
+  --bg-restart-btn-bg: #e5e5e5;
+  --bg-restart-btn-bg-hover: #dfdfdf;
+
+  --border: #e6e6e6;
+  --border-hover: #c5c5c5;
+  --border-hover-alt: #dbdbdb;
+  --border-key-recording: #dfdfdf;
+  --border-error: rgba(233, 96, 96, 0.17);
+  --border-error-hover: rgba(233, 96, 96, 0.3);
+  --border-success: rgba(126, 233, 96, 0.17);
+  --border-success-hover: rgba(126, 233, 96, 0.3);
+  --border-drop-target: #489f4e;
+
+  --text: #1a1a1a;
+  --text-muted: #777777;
+  --text-error: #e99393;
+
+  --topbar-gradient-bg: linear-gradient(
+    91deg,
+    rgba(255,255,255,1) 0%, 
+    rgba(245, 245, 245,1) 50%, 
+    rgba(255,255,255,1) 100%
+  );
+  --sidebar-gradient-bg: linear-gradient(
+    175deg,
+    rgba(255,255,255,1) 0%, 
+    rgba(245, 245, 245,1) 100%
+  );
+  --section-block-gradient-bg: linear-gradient(
+    161deg,
+    rgba(255,255,255,1) 0%, 
+    rgba(245, 245, 245,1) 100%
+  );
+
+  --icon-filter: brightness(0) saturate(100%) invert(7%) sepia(0%) saturate(0%) hue-rotate(151deg) brightness(98%) contrast(93%);
+  --icon-settings-filter: brightness(0) saturate(100%) invert(43%) sepia(0%) saturate(0%) hue-rotate(330deg) brightness(87%) contrast(83%);
+}

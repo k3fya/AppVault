@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AppVault</title>
+  <meta http-equiv="Content-Security-Policy"
+    content="
+      default-src 'self';
+      script-src 'self';
+      style-src 'self' 'unsafe-inline';
+      style-src-elem 'self';
+      font-src 'self';
+      img-src 'self' data: blob:;
+    " />
+  <link rel="stylesheet" href="styles/main.css" />
+</head>
+
+<!-- some names and other fields are written in different languages, im too lazy to change them :) -->
+
+<body>
+  <!-- splash(loading) screen -->
+  <div id="splash-screen" class="splash-screen">
+    <div class="loader">
+      <svg class="svg-loader" viewBox="25 25 50 50">
+        <circle class="circle-loader" r="20" cy="50" cx="50"></circle>
+      </svg>
+    </div>
+    <div class="loader-text" data-text="AppVault">AppVault</div>
+  </div>
+
+  <!-- top-bar -->
+  <header class="topbar" id="topbar" role="banner" aria-label="AppVault top bar">
+    <div class="branding">
+      <img src="../assets/avlogo.png" class="logo" alt="AppVault" />
+      <h1 class="title">AppVault</h1>
+    </div>
+    <div class="window-controls">
+      <button id="minimizeBtn" class="ctrl-btn" aria-label="Minimize">
+        <img src="../assets/icons/minimize.svg" class="ctrl-btn-icon" alt="">
+      </button>
+
+      <button id="maximizeBtn" class="ctrl-btn" aria-label="Toggle maximize">
+        <img id="maximizeBtnIcon" src="../assets/icons/maximize.svg" class="ctrl-btn-icon" alt=""/>
+      </button>
+
+      <button id="closeBtn" class="ctrl-btn" aria-label="Close">
+        <img src="../assets/icons/cross.svg" class="ctrl-btn-icon" alt="">
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- sidebar -->
+    <aside class="sidebar">
+      <div id="searchWrapper" class="search-wrapper" role="search" aria-label="Поиск по приложениям">
+        <input id="searchInput" type="text" placeholder="Поиск..." aria-label="Поиск" autocomplete="off" maxlength="20"/>
+        <span class="search-icon" aria-hidden="true"></span>
+        <button id="searchClear" class="search-clear" aria-label="Очистить поиск" type="button">
+          <img src="../assets/icons/cross.svg" alt="" width="14" height="14" />
+        </button>
+      </div>
+
+      <hr class="hr-line">
+
+      <button id="addSectionBtn" class="accent-btn">
+        <img src="../assets/icons/add.svg" alt="" class="btn-icon">
+        <span class="btn-text">Новый раздел</span>
+      </button>
+
+      <hr class="hr-line-2">
+
+      <ul id="sectionsList" class="sections-list" role="list"></ul>
+      
+      <button id="settingsBtn" class="settings-btn" aria-haspopup="dialog" aria-controls="settingsModal">
+        <img src="../assets/icons/settings.svg" alt="" class="settings-btn-icon">
+        <span class="btn-text">Настройки</span>
+      </button>
+    </aside>
+
+    <!-- resizer -->
+    <div class="sidebar-resizer" aria-label="Resize sidebar" role="separator"></div>
+
+    <!-- main content -->
+    <main class="content">
+      <div class="content__scroll">
+        <div id="sectionContent"></div>
+      </div>
+    </main>
+  </div>
+
+  <!--       modals         -->
+
+  <!-- section modal -->
+  <div id="sectionModal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sectionModalTitle">
+      <h2 id="sectionModalTitle"></h2>
+      <div id="sectionModalBody" class="modal-body">
+        <label for="secName"></label>
+        <input id="secName" type="text" />
+      </div>
+      <div class="modal-footer">
+        <button id="sectionModalCancel" class="btn btn-secondary">Отмена</button>
+        <button id="sectionModalOk" class="btn btn-primary">Ок</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- shortcut modal -->
+  <div id="shortcutModal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="shortcutModalTitle">
+      <h2 id="shortcutModalTitle"></h2>
+      <div id="shortcutModalBody" class="modal-body">
+        <label for="scName"></label>
+        <input id="scName" type="text" />
+
+        <div class="file-group">
+          <div class="file-row">
+            <label class="floating" for="scExe"></label>
+            <input id="scExe" type="text" />
+            <button id="pickExe" class="file-btn" type="button" aria-label="Browse .exe">
+              <img class="icon" src="../assets/icons/folder.svg" alt="Browse" />
+            </button>
+          </div>
+        </div>
+
+        <div class="file-group">
+          <div class="file-row">
+            <label class="floating" for="scIcon"></label>
+            <input id="scIcon" type="text" />
+            <button id="pickIcon" class="file-btn" type="button" aria-label="Browse icon">
+              <img class="icon" src="../assets/icons/folder.svg" alt="Browse" />
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="shortcutModalCancel" class="btn btn-secondary">Отмена</button>
+        <button id="shortcutModalOk" class="btn btn-primary">Ок</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- confirm modal -->
+  <div id="confirmModal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+      <h2 id="confirmModalTitle"></h2>
+      <div id="confirmModalBody" class="modal-body">
+        <p></p>
+      </div>
+      <div class="modal-footer">
+        <button id="confirmModalCancel" class="btn btn-secondary">Отмена</button>
+        <button id="confirmModalOk" class="btn btn-primary">Ок</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- settings modal -->
+  <div id="settingsModal" class="modal-overlay hidden" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal settings-modal" id="settingsModalWindow" role="document">
+      <div class="settings-modal-body" id="settingsModalBody">
+        <aside class="settings-sidebar" id="settingsSidebar">
+          <nav>
+            <ul class="settings-sidebar-list" role="tablist" aria-orientation="vertical">
+              <li class="settings-sidebar-item active" data-tab="main" role="tab" aria-selected="true" tabindex="0">
+                <img src="../assets/icons/msettings.svg" alt="" class="sb-icon" /><span class="sb-text">Основные</span>
+              </li>
+              <li class="settings-sidebar-item" data-tab="appearance" role="tab" tabindex="0">
+                <img src="../assets/icons/appearance.svg" alt="" class="sb-icon" /><span class="sb-text">Внешний вид</span>
+              </li>
+              <li class="settings-sidebar-item" data-tab="about" role="tab" tabindex="0">
+                <img src="../assets/icons/abtprogram.svg" alt="" class="sb-icon" /><span class="sb-text">О программе</span>
+              </li>
+            </ul>
+          </nav>
+
+          <div id="settingsStatus" class="settings-status" aria-live="polite" hidden>
+            <img src="../assets/icons/success.svg" class="status-icon" alt="ok" />
+            <span class="status-text">Настройки сохранены</span>
+          </div>
+        </aside>
+
+        <main class="settings-content" id="settingsContent" role="tabpanel">
+          <div class="settings-content-header" id="settingsContentHeader">
+            <h2 id="settingsModalTitle" class="settings-content-title"></h2>
+            <button id="settingsModalClose" class="settings-modal-close" aria-label="Close settings">
+              <img src="../assets/icons/cross.svg" class="settings-modal-close-icon" alt="">
+            </button>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- simple error modal -->
+  <div id="simpleErrorModal" class="modal-overlay hidden" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="simpleErrorModalTitle">
+      <h2 id="simpleErrorModalTitle"></h2>
+      <div id="simpleErrorModalBody" class="modal-body"><p></p></div>
+      <div class="modal-footer">
+        <button id="simpleErrorModalOk" class="btn btn-primary">Ok</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="globalNotifications" class="global-notifications"></div>
+
+  <script type="module" src="renderer.js"></script>
+</body>
+</html>

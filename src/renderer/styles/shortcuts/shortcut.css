@@ -1,0 +1,247 @@
+.shortcuts {
+  margin-top: 12px;
+  box-sizing: border-box;
+}
+
+/* ------------- grid layout ------------- */
+.shortcuts.layout-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.shortcut {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border-radius: 8px;
+  padding: 6px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+  position: relative;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.shortcut.grid-item {
+  position: relative;
+  flex-direction: column;
+  text-align: center;
+  padding: 10px;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  min-height: 100px;
+  align-items: center;
+  justify-content: center;
+}
+
+.shortcut.grid-item .shortcut-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 6px;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.shortcut.grid-item:hover .shortcut-icon { z-index: 999; }
+
+.shortcut.grid-item .label {
+  margin-top: 5px;
+  font-size: 0.9rem;
+  color: var(--text);
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  width: 100%;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+.shortcut .count-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: var(--bg-medium);
+  color: var(--text);
+  font-size: 0.75rem;
+  padding: 6px 6px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  user-select: none;
+  line-height: 1;
+  transition: border-color var(--transition);
+}
+.shortcut .count-badge:hover {
+  border-color: var(--border-hover);
+}
+
+.shortcuts.layout-list .count-badge {
+  display: none;
+}
+
+.shortcut .menu-btn {
+  position: absolute;
+  top: 10px;
+  right: 5px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  -webkit-app-region: no-drag;
+  opacity: 0;
+  border-radius: 4px;
+  transition: opacity var(--transition);
+  pointer-events: none;
+}
+
+.shortcut:hover .menu-btn,
+.shortcut:focus-within .menu-btn,
+.shortcut:focus .menu-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.menu-btn .ellipsis-icon {
+  filter: var(--icon-settings-filter);
+  width: 14px;
+  height: 18px;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+  transition: filter var(--transition);
+}
+.menu-btn:hover .ellipsis-icon { filter: var(--icon-filter); }
+
+.shortcut.grid-item:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-hover);
+}
+
+
+
+/* ------------- list layout ------------- */
+.shortcuts.layout-list {
+  display: block;
+}
+
+.shortcuts.layout-list .shortcut {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 6px 0;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  box-sizing: border-box;
+  min-height: 56px;
+}
+
+.shortcuts.layout-list .shortcut-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.shortcuts.layout-list .shortcut-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.shortcuts.layout-list .label {
+  margin-top: 0;
+  text-align: left;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+  max-width: 50vw;
+  user-select: none;
+}
+
+.shortcuts.layout-list .shortcut-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 12px;
+  flex: 0 0 auto;
+}
+
+.shortcut-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.meta-count {
+  min-width: 28px;
+  padding: 4px 8px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--bg-medium);
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text);
+  line-height: 1;
+  user-select: none;
+  transition: border-color var(--transition);
+}
+.meta-count:hover {
+  border-color: var(--border-hover);
+}
+
+.meta-count:empty { display: none; }
+
+.meta-section {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.meta-section:empty { display: none; }
+
+.shortcuts.layout-list .menu-btn {
+  position: static;
+  top: auto;
+  right: auto;
+  opacity: 1;
+  pointer-events: auto;
+  padding: 4px;
+  border-radius: 4px;
+  width: auto;
+  height: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+.shortcuts.layout-list .menu-btn:hover {
+  background: var(--bg-buttons);
+}
+
+.shortcuts.layout-list .shortcut:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-hover);
+}
+
+.shortcut .label { 
+  white-space: normal !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}

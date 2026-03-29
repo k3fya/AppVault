@@ -1,0 +1,193 @@
+#s_toggle_startWithSystem,
+#s_toggle_trayOnClose,
+#s_toggle_showDiscordStatus { display: none; }
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  top: 8px;
+  width: 50px;
+  height: 30px;
+  background: var(--bg-medium);
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  cursor: pointer;
+  transition-duration: .2s;
+}
+
+.toggle::after {
+  content: "";
+  position: absolute;
+  height: 10px;
+  width: 10px;
+  left: 5px;
+  background-color: var(--text-muted);
+  border-radius: 50%;
+  transition-duration: .2s;
+  box-shadow: 5px 2px 7px rgba(8, 8, 8, 0.26);
+  border: 5px solid var(--text-muted);
+}
+
+#s_toggle_startWithSystem:not(:checked) + .toggle:hover,
+#s_toggle_trayOnClose:not(:checked) + .toggle:hover,
+#s_toggle_showDiscordStatus:not(:checked) + .toggle:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-light);
+}
+#s_toggle_startWithSystem:checked + .toggle::after,
+#s_toggle_trayOnClose:checked + .toggle::after,
+#s_toggle_showDiscordStatus:checked + .toggle::after {
+  transform: translateX(100%);
+  transition-duration: .2s;
+  background-color: var(--accent-contrast-text);
+  border-color: var(--accent-contrast-text);
+}
+#s_toggle_startWithSystem:checked + .toggle,
+#s_toggle_trayOnClose:checked + .toggle,
+#s_toggle_showDiscordStatus:checked + .toggle {
+  background-color: var(--accent);
+  transition-duration: .2s;
+}
+
+.hotkey-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hotkey-input {
+  position: relative;
+  max-width: 190px;
+  padding: 8px 12px;
+  background: var(--bg-medium);
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: var(--text);
+  cursor: pointer;
+  outline: none;
+  transition: border-color var(--transition), background var(--transition);
+  user-select: none;
+}
+.hotkey-input:hover {
+  background: var(--bg-light);
+  border-color: var(--border-hover);
+}
+.hotkey-input:hover .key {
+  background: var(--bg-key-recording);
+  border-color: var(--border-key-recording);
+}
+
+.hotkey-input.recording {
+  border-color: var(--border-hover);
+  background: var(--bg-light);
+  cursor: text;
+}
+.hotkey-input.recording .key {
+  background: var(--bg-key-recording);
+  border-color: var(--border-key-recording);
+}
+
+.hotkey-input .key {
+  display: inline-block;
+  min-width: 24px;
+  padding: 2px 6px;
+  margin-right: 4px;
+  background: var(--bg-light);
+  border: 2px solid var(--border-key-recording);
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 500;
+  color: var(--text);
+  pointer-events: none;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.hotkey-reset-btn {
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-medium);
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.hotkey-reset-btn:hover {
+  background: var(--bg-light);
+  border-color: var(--border-hover);
+}
+
+.hotkey-reset-btn img {
+  width: 18px;
+  height: 18px;
+  filter: var(--icon-filter);
+}
+
+.hotkey-tooltip {
+  position: fixed;
+  z-index: 10030;
+  padding: 4px 8px;
+  background: var(--bg-medium);
+  color: var(--text);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.98);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transition: opacity var(--transition), transform var(--transition);
+  max-width: 500px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.input-tooltip {
+  position: fixed;
+  z-index: 11000;
+  pointer-events: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--text);
+  font-size: 0.8rem;
+  box-shadow: 0 6px 14px var(--bg-modal-overlay);
+  white-space: nowrap;
+  transform-origin: left bottom;
+}
+
+.custom-tooltip {
+  position: fixed;
+  z-index: 10030;
+  padding: 4px 8px;
+  background: var(--bg-medium);
+  color: var(--text);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.98);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transition: opacity var(--transition), transform var(--transition);
+  max-width: 500px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+.custom-tooltip.force-top {
+  z-index: 11000 !important;
+}
+
+.custom-tooltip.visible {
+  opacity: 1;
+  transform: scale(1);
+}

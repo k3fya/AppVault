@@ -1,0 +1,117 @@
+.sections-list {
+  flex: 1;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+}
+
+.sections-list li {
+  padding: 8px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+  margin-top: 6px;
+  transition: background var(--transition), color var(--short-transition);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  width: 100%;
+}
+
+.sections-list li.active,
+.sections-list li:hover {
+  background: var(--accent);
+  color: var(--text);
+  transition: background var(--transition);
+}
+.sections-list li.active:hover {
+  background: var(--accent-hover);
+}
+
+.sections-list li .sec-name-wrapper {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.sections-list li .sec-name {
+  user-select: none;
+  flex: 1;
+  font-size: 1rem;
+  color: var(--text);
+  min-width: 0;
+
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+
+  max-height: 1.5em;
+  overflow: hidden;
+
+  will-change: transform, max-height;
+  backface-visibility: hidden;
+  transition: 
+    max-height var(--transition),
+    transform var(--transition);
+}
+
+.sections-list li:hover .sec-name {
+  max-height: 6em;
+}
+
+.sections-list li .sec-count {
+  user-select: none;
+  color: var(--text-muted);
+  font-size: 1rem;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.sections-list li:hover .sec-count,
+.sections-list li.active .sec-count {
+  color: var(--text);
+}
+
+.sec-icon {
+  filter: var(--icon-filter);
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  will-change: transform;
+  backface-visibility: hidden;
+  transition: transform var(--transition);
+}
+
+.sections-list li:hover .sec-name,
+.sections-list li:hover .sec-icon {
+  transform: translateX(3px);
+}
+.sections-list li.active:hover .sec-name,
+.sections-list li.active:hover .sec-icon {
+  transform: translateX(0);
+}
+
+.sections-list li.drop-target {
+  position: relative;
+  z-index: 2;
+}
+
+.sections-list li.drop-target::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  box-sizing: border-box;
+  border: 2px dashed var(--border-drop-target);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.section-block.drop-target {
+  outline: 2px dashed var(--border-drop-target);
+  outline-offset: 0;
+  border-radius: 6px;
+}

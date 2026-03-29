@@ -1,0 +1,178 @@
+:root {
+  --bg-selection: #ffb3b3;
+  --bg-modal-overlay: rgba(0,0,0,0.5);
+  --bg-modal-input: rgba(255,255,255,0.02);
+
+  --accent: #FB5252;
+  --accent-hover: #fb6262;
+  --accent-contrast-text: #ffffff;
+  --latest-update-success: #2ecc71;
+  --latest-update-warning: #f39c12;
+  --latest-update-danger: #e74c3c;
+
+  --focus-outline: 2px;
+  --transition: 0.3s ease;
+  --short-transition: 0.12s ease;
+  --radius: 6px;
+}
+
+/* Manrope */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../assets/fonts/Manrope-Regular.woff2') format('woff2'),
+       url('../../assets/fonts/Manrope-Regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 600;
+  src: url('../../assets/fonts/Manrope-SemiBold.woff2') format('woff2'),
+       url('../../assets/fonts/Manrope-SemiBold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../../assets/fonts/Manrope-Bold.woff2') format('woff2'),
+       url('../../assets/fonts/Manrope-Bold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 800;
+  src: url('../../assets/fonts/Manrope-ExtraBold.woff2') format('woff2'),
+       url('../../assets/fonts/Manrope-ExtraBold.woff') format('woff');
+}
+
+/* Inter */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../assets/fonts/fallback/Inter/Inter_24pt-Regular.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Inter/Inter_24pt-Regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  src: url('../../assets/fonts/fallback/Inter/Inter_24pt-SemiBold.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Inter/Inter_24pt-SemiBold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../../assets/fonts/fallback/Inter/Inter_24pt-Bold.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Inter/Inter_24pt-Bold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 800;
+  src: url('../../assets/fonts/fallback/Inter/Inter_24pt-ExtraBold.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Inter/Inter_24pt-ExtraBold.woff') format('woff');
+}
+
+/* Montserrat */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../assets/fonts/fallback/Montserrat/Montserrat-Regular.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Montserrat/Montserrat-Regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 600;
+  src: url('../../assets/fonts/fallback/Montserrat/Montserrat-SemiBold.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Montserrat/Montserrat-SemiBold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../../assets/fonts/fallback/Montserrat/Montserrat-Bold.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Montserrat/Montserrat-Bold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 800;
+  src: url('../../assets/fonts/fallback/Montserrat/Montserrat-ExtraBold.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Montserrat/Montserrat-ExtraBold.woff') format('woff');
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Manrope', 'Inter', 'Montserrat', sans-serif;
+}
+
+::selection {
+  color: var(--bg-medium);
+  background-color: var(--bg-selection);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-medium);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border);
+}
+
+.settings-content::-webkit-scrollbar,
+.sections-list::-webkit-scrollbar,
+.content__scroll::-webkit-scrollbar { 
+  width: 8px;
+}
+.settings-content::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 15px 0;
+}
+.sections-list::-webkit-scrollbar-track,
+.content__scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 5px 0;
+}
+.settings-content::-webkit-scrollbar-thumb,
+.sections-list::-webkit-scrollbar-thumb,
+.content__scroll::-webkit-scrollbar-thumb {
+  background: var(--bg-medium); 
+  border-radius: 4px;
+  min-height: 40px;
+}
+.settings-content::-webkit-scrollbar-thumb:hover,
+.sections-list::-webkit-scrollbar-thumb:hover,
+.content__scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--border);
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  height: 100%;
+  user-select: text;
+  -webkit-user-select: text;
+	overflow-x: hidden;
+}
+img {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible { 
+  outline: var(--focus-outline) solid var(--accent-hover); 
+  outline-offset: 2px; 
+}

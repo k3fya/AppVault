@@ -1,0 +1,119 @@
+.btn {
+  flex: 1;
+  user-select: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 8px 10px;
+  transition: background var(--transition), filter var(--transition);
+  min-width: 0;
+}
+
+.btn-secondary {
+  background: var(--border);
+  color: var(--text);
+}
+.btn-secondary:hover {
+  background: var(--border-hover-alt);
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--text);
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.accent-btn {
+  font-size: 0.95rem;
+  background: var(--accent);
+  border: none;
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  text-align: center;
+  transition: background var(--transition), filter var(--transition);
+  user-select: none;
+}
+.accent-btn:hover {
+  background: var(--accent-hover);
+}
+
+.create-first-section-btn {
+  font-size: 0.95rem;
+  background: var(--bg-medium);
+  border: 2px solid var(--border);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+  text-align: center;
+  transition: background var(--transition), border-color var(--transition);
+  user-select: none;
+}
+.create-first-section-btn:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-buttons);
+}
+
+.settings-btn {
+  user-select: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: var(--settings-button-bg);
+  border: none;
+  border-radius: 4px;
+  color: var(--text-muted);
+  padding: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--transition);
+}
+.settings-btn:hover {
+  background: var(--settings-button-bg-hover);
+}
+
+.btn-icon {
+  filter: var(--icon-filter);
+  margin-right: 3px;
+  width: 16px;
+  height: 16px;
+  top: 2px;
+  position: relative;
+}
+
+.settings-btn-icon {
+  filter: var(--icon-settings-filter);
+  margin-right: 3px;
+  width: 16px;
+  height: 16px;
+  top: 2px;
+  position: relative;
+  transition: var(--short-transition), filter var(--transition);
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: var(--text);
+  border: 2px solid var(--border);
+  background: var(--bg-medium);
+  cursor: pointer;
+  font-weight: 600;
+  user-select: none;
+  transition: background var(--transition), border-color var(--transition);
+}
+.action-btn:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-light); 
+}
+.action-btn img { width:16px; height:16px; opacity:0.95; filter: var(--icon-filter) }

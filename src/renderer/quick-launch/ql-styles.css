@@ -1,0 +1,319 @@
+/* Manrope */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../assets/fonts/Manrope-Regular.woff2') format('woff2'),
+       url('../../assets/fonts/Manrope-Regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 600;
+  src: url('../../assets/fonts/Manrope-SemiBold.woff2') format('woff2'),
+       url('../../assets/fonts/Manrope-SemiBold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../../assets/fonts/Manrope-Bold.woff2') format('woff2'),
+       url('../../assets/fonts/Manrope-Bold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 800;
+  src: url('../../assets/fonts/Manrope-ExtraBold.woff2') format('woff2'),
+       url('../../assets/fonts/Manrope-ExtraBold.woff') format('woff');
+}
+
+/* Inter */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../assets/fonts/fallback/Inter/Inter_24pt-Regular.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Inter/Inter_24pt-Regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  src: url('../../assets/fonts/fallback/Inter/Inter_24pt-SemiBold.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Inter/Inter_24pt-SemiBold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../../assets/fonts/fallback/Inter/Inter_24pt-Bold.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Inter/Inter_24pt-Bold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 800;
+  src: url('../../assets/fonts/fallback/Inter/Inter_24pt-ExtraBold.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Inter/Inter_24pt-ExtraBold.woff') format('woff');
+}
+
+/* Montserrat */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 400;
+  src: url('../../assets/fonts/fallback/Montserrat/Montserrat-Regular.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Montserrat/Montserrat-Regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 600;
+  src: url('../../assets/fonts/fallback/Montserrat/Montserrat-SemiBold.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Montserrat/Montserrat-SemiBold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../../assets/fonts/fallback/Montserrat/Montserrat-Bold.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Montserrat/Montserrat-Bold.woff') format('woff');
+}
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 800;
+  src: url('../../assets/fonts/fallback/Montserrat/Montserrat-ExtraBold.woff2') format('woff2'),
+       url('../../assets/fonts/fallback/Montserrat/Montserrat-ExtraBold.woff') format('woff');
+}
+
+:root {
+  font-family: 'Manrope', 'Inter', 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+
+  --bg: #111;
+  --bg-medium: #1b1b1b;
+  --panel: #0f0f0f;
+
+  --text-primary: #eee;
+  --text-input: #fff;
+  --text-muted: rgba(255, 255, 255, 0.7);
+  --text-muted-2: rgba(255, 255, 255, 0.45);
+  --text-empty: rgba(255, 255, 255, 0.5);
+
+  --border: #2c2c2c;
+  --border-input: #333;
+
+  --hover-bg: rgba(255, 255, 255, 0.025);
+
+  --scrollbar-thumb: #1d1d1d;
+  --scrollbar-thumb-hover: #282828;
+
+  --trans: 0.3s ease;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-primary);
+}
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 10px;
+  box-sizing: border-box;
+  gap: 8px;
+}
+
+.search-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+input#q {
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-input);
+  background: var(--panel);
+  color: var(--text-input);
+  outline: none;
+  font-size: 1rem;
+  box-sizing: border-box;
+  flex: 1;
+  user-select: none;
+  -webkit-app-region: no-drag;
+}
+
+.drag-handle {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-app-region: drag;
+  cursor: default;
+  flex: 0 0 34px;
+}
+.drag-handle svg {
+  width: 22px;
+  height: 22px;
+}
+
+.quick-info {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+  -webkit-app-region: no-drag;
+  box-sizing: border-box;
+}
+
+ul.list {
+  list-style: none;
+  margin: 0;
+  margin-top: 5px;
+  padding: 0;
+  overflow: auto;
+  flex: 1;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-content: flex-start;
+}
+.empty {
+  color: var(--text-empty);
+  text-align: center;
+  padding: 20px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+li.item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  margin-right: 5px;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  min-height: 48px;
+  box-sizing: border-box;
+  -webkit-app-region: no-drag;
+  transition: background var(--trans);
+}
+
+li.item:hover {
+  background: var(--hover-bg);
+}
+
+.icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  flex: 0 0 36px;
+  object-fit: cover;
+  display: inline-block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.meta-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none;
+}
+
+.sub {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: var(--text-muted-2);
+  min-width: 0;
+  user-select: none;
+}
+
+.section-name {
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.launch-count {
+  opacity: 0.9;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.custom-tooltip {
+  position: fixed;
+  z-index: 10030;
+  padding: 4px 8px;
+  background: var(--bg-medium);
+  color: var(--text-primary);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.98);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transition: opacity var(--trans), transform var(--trans);
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.custom-tooltip.visible {
+  opacity: 1;
+  transform: scale(1);
+}

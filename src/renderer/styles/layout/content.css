@@ -1,0 +1,40 @@
+.content {
+  flex: 1;
+  position: relative;
+}
+
+.content__scroll {
+  position: absolute;
+  top: 0;
+  right: 5px;
+  bottom: 0;
+  left: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.content .anim {
+  color: var(--text);
+  opacity: 0;
+  transform: translateY(5px);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transition: opacity var(--transition), transform var(--transition);
+}
+.content .anim.in {
+  opacity: 1;
+  transform: none;
+}
+#sectionContent h1 {
+  user-select: none;
+  margin-bottom: 0;
+}
+#sectionContent p {
+  cursor: default;
+}
+
+#sectionContent {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}

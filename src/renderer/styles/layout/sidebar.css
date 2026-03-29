@@ -1,0 +1,119 @@
+.container {
+  display: flex;
+  height: calc(100% - 35px);
+}
+
+.sidebar {
+  width: 220px;
+  background: var(--bg-medium);
+  background: var(--sidebar-gradient-bg);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+}
+.container.sidebar-right {
+  flex-direction: row-reverse;
+}
+
+.search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 560px;
+}
+
+.search-wrapper .search-icon {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  display: block;
+  cursor: default;
+  background-color: var(--text-muted);
+  -webkit-mask: url("../../../assets/icons/search.svg") no-repeat center / contain;
+  mask: url("../../../assets/icons/search.svg") no-repeat center / contain;
+  opacity: 0.95;
+  transition: background-color var(--transition);
+}
+
+#searchInput {
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 34px;
+  padding-right: 30px;
+  height: 36px;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  user-select: none;
+}
+
+#searchInput::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+  transition: color var(--short-transition);
+}
+
+.search-clear {
+  position: absolute;
+  top: 11px;
+  right: 10px;
+  scale: 1.2;
+  border: none;
+  background: transparent;
+  display: none;
+  text-align: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 4px;
+  filter: brightness(0) saturate(100%) invert(67%) sepia(0%) saturate(3237%) hue-rotate(218deg) brightness(102%) contrast(89%);
+}
+.search-clear.show { display: block; }
+
+#searchInput:focus ~ .search-icon {
+  background-color: var(--accent);
+}
+#searchInput:focus::placeholder {
+  color: var(--accent-hover);
+}
+
+.hr-line {
+  width: 100%;
+  border: none;
+  border-top: 2px solid var(--border);
+  margin-top: 2px;
+  margin-bottom: 12px;
+}
+.hr-line-2 {
+  width: 100%;
+  border: none;
+  border-top: 2px solid var(--bg-medium);
+  margin-top: 2px;
+  margin-bottom: 8px;
+}
+
+.sidebar-resizer {
+  width: 2px;
+  background: var(--border);
+  cursor: ew-resize;
+  user-select: none;
+  z-index: 10;
+  position: relative;
+
+  will-change: width;
+  backface-visibility: hidden;
+  transition: width var(--transition), background var(--transition);
+}
+
+.sidebar-resizer:hover,
+.sidebar-resizer.active {
+  background: var(--border-hover);
+  width: 5px;
+}
