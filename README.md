@@ -1,12 +1,13 @@
 # AppVault
+[![website](https://img.shields.io/badge/Website-blue?style=for-the-badge&color=red)](https://appvlt.pages.dev/)
 
-![version](https://img.shields.io/badge/v0.2.0--beta-red?style=for-the-badge)
+[![version](https://img.shields.io/github/v/release/k3fya/AppVault?label=version&style=for-the-badge)](https://github.com/k3fya/AppVault/releases)
 ![Platform](https://img.shields.io/badge/Platform-Windows_10%2F11-gray?style=for-the-badge&labelColor=gray&color=blue)
 ![License: MIT|123](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 
 **AppVault** is a convenient and flexible shortcut manager for Windows, designed to organize your workspace and provide quick access to your essential applications.
 
-![](https://i.imgur.com/mRwZlpS.png)
+![](https://i.imgur.com/yWEyWgX.png)
 
 ## ✨ Features
 - **Shortcut grouping:** Create sections to structure your applications.
