@@ -47,7 +47,7 @@ export let data = {
 
 export let app = {
   name: 'AppVault',
-  version: '0.2.0',
+  version: '0.2.1',
   electronVersion: '26.0.0',
   gitRepositoryLink: 'https://github.com/k3fya/AppVault',
   supportLink: 'https://discord.gg/DDJvjdnJ8t'

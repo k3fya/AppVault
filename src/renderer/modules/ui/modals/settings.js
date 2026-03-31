@@ -199,11 +199,13 @@ async function checkForUpdatesAndUpdateUI(statusEl) {
 
       if (majorDiff >= 2) {
         const tpl = (langs[lang]||langs['en']).updateRecommended || 'Recommended update available — download it {0}';
-        const link = `<a href="${latestUrl}" target="_blank" rel="noopener noreferrer">here</a>`;
+        const hereText = (langs[lang]||langs['en']).downloadHere || 'here';
+        const link = `<a href="${latestUrl}" target="_blank" rel="noopener noreferrer" class="update-download-link">${hereText}</a>`;
         setUpdateStatusUI(statusEl, tpl.replace('{0}', link), 'recommended');
       } else {
         const tpl = (langs[lang]||langs['en']).updateAvailable || 'Update available — download it {0}';
-        const link = `<a href="${latestUrl}" target="_blank" rel="noopener noreferrer">here</a>`;
+        const hereText = (langs[lang]||langs['en']).downloadHere || 'here';
+        const link = `<a href="${latestUrl}" target="_blank" rel="noopener noreferrer" class="update-download-link">${hereText}</a>`;
         setUpdateStatusUI(statusEl, tpl.replace('{0}', link), 'available');
       }
     } else {
@@ -612,7 +614,7 @@ export function openSettingsModal() {
 
         <div class="about-row">
           <div class="row-label">${(langs[lang]||langs['en']).versionLabel || 'Version'}</div>
-          <div class="row-value">${ (app && app.version) || '0.2.0' }</div>
+          <div class="row-value">${ (app && app.version) || '0.2.1' }</div>
         </div>
 
         <div class="about-row">

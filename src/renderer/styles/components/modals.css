@@ -645,6 +645,18 @@
   color: var(--text-muted);
 }
 
+.update-download-link {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-weight: 800;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s ease;
+}
+.update-download-link:hover {
+  border-bottom-color: var(--accent-color);
+  text-decoration: none;
+}
+
 .global-notifications {
   position: fixed;
   top: 0;

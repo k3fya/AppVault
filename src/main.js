@@ -1604,7 +1604,7 @@ function updateDiscordActivity() {
       startTimestamp: discordSessionStart,
       instance: false,
       buttons: [
-        { label: 'In development', url: 'https://k3fya.pro' }
+        { label: 'Download', url: 'https://github.com/k3fya/AppVault/releases/latest' }
       ]
     };
     if (mostPopular) { 

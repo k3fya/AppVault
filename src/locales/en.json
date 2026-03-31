@@ -135,6 +135,7 @@
   "latestInstalled": "You have the latest version of the application",
   "updateAvailable": "Update available — download it {0}",
   "updateRecommended": "Recommended update available — download it {0}",
+  "downloadHere": "here",
   "updateCheckFailed": "Could not check for updates (server error).",
 
   "programLaunch": "Windows settings",
