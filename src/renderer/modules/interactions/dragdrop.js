@@ -39,6 +39,8 @@ function computeDestinationSectionId() {
 }
 
 let hoveredSectionId = null;
+let shortcutIcon = null;
+let shortcutSourcePath = null;
 
 export function initDragAndDrop() {
   document.addEventListener('dragover', (e) => {
@@ -76,6 +78,8 @@ export function initDragAndDrop() {
 
   document.addEventListener('drop', async (e) => {
     e.preventDefault();
+    shortcutIcon = null;
+    shortcutSourcePath = null;
     try { clearDropHighlights(); } catch (err) {}
 
     const files = (e.dataTransfer && e.dataTransfer.files) ? e.dataTransfer.files : null;
@@ -89,8 +93,8 @@ export function initDragAndDrop() {
       const fullPath = file.path || file.name || '';
       const ext = (fullPath.split('.').pop() || '').toLowerCase();
 
-      if (!['exe', 'lnk'].includes(ext)) {
-        openSimpleErrorModal((langs[lang] || langs['en']).dropOnlyExeOrLnk || 'Please drop only .exe files or Windows shortcuts (.lnk).');
+      if (!['exe', 'lnk', 'url'].includes(ext)) {
+        openSimpleErrorModal((langs[lang] || langs['en']).dropOnlyExeOrLnk || 'Please drop only .exe files, Windows shortcuts (.lnk), or Steam shortcuts (.url).');
         hoveredSectionId = null;
         return;
       }
@@ -118,6 +122,30 @@ export function initDragAndDrop() {
           return;
         }
       }
+      else if (ext === 'url') {
+        if (window.api && typeof window.api.readUrlShortcut === 'function') {
+          try {
+            const resolved = await window.api.readUrlShortcut(fullPath);
+            if (!resolved || !resolved.url) {
+              openSimpleErrorModal((langs[lang] || langs['en']).shortcutResolveFailed || 'Failed to resolve the shortcut target.');
+              hoveredSectionId = null;
+              return;
+            }
+            exePath = resolved.url;
+            shortcutIcon = resolved.icon || null;
+            shortcutSourcePath = fullPath;
+          } catch (err) {
+            console.warn('readUrlShortcut error', err);
+            openSimpleErrorModal((langs[lang] || langs['en']).shortcutResolveFailed || 'Failed to resolve the shortcut target.');
+            hoveredSectionId = null;
+            return;
+          }
+        } else {
+          openSimpleErrorModal((langs[lang] || langs['en']).shortcutResolveNotAvailable || 'Shortcut resolution is not available in this environment.');
+          hoveredSectionId = null;
+          return;
+        }
+      }
 
       let destSectionId = null;
       if (hoveredSectionId) {
@@ -132,8 +160,16 @@ export function initDragAndDrop() {
         return;
       }
 
-      const suggestedName = basenameFromPath(exePath);
-      openShortcutModal(destSectionId, { exePath, name: suggestedName });
+      const suggestedName = ext === 'url'
+        ? basenameFromPath(fullPath)
+        : basenameFromPath(exePath);
+
+      openShortcutModal(destSectionId, {
+        exePath,
+        name: suggestedName,
+        icon: shortcutIcon,
+        sourceShortcutPath: shortcutSourcePath
+      });
       hoveredSectionId = null;
       return;
     }
@@ -141,12 +177,15 @@ export function initDragAndDrop() {
     const itemsToAdd = [];
 
     for (let i = 0; i < files.length; i++) {
+      shortcutIcon = null;
+      shortcutSourcePath = null;
+      
       const file = files[i];
       const fullPath = file.path || file.name || '';
       const ext = (fullPath.split('.').pop() || '').toLowerCase();
 
-      if (!['exe', 'lnk'].includes(ext)) {
-        if (i === 0) openSimpleErrorModal((langs[lang] || langs['en']).dropOnlyExeOrLnk || 'Please drop only .exe files or Windows shortcuts (.lnk).');
+      if (!['exe', 'lnk', 'url'].includes(ext)) {
+        if (i === 0) openSimpleErrorModal((langs[lang] || langs['en']).dropOnlyExeOrLnk || 'Please drop only .exe files, Windows shortcuts (.lnk), or Steam shortcuts (.url).');
         continue;
       }
 
@@ -170,6 +209,27 @@ export function initDragAndDrop() {
           continue;
         }
       }
+      else if (ext === 'url') {
+        if (window.api && typeof window.api.readUrlShortcut === 'function') {
+          try {
+            const resolved = await window.api.readUrlShortcut(fullPath);
+            if (!resolved) {
+              openSimpleErrorModal((langs[lang] || langs['en']).shortcutResolveFailed || 'Failed to resolve the shortcut target.');
+              continue;
+            }
+            exePath = resolved.url;
+            shortcutIcon = resolved.icon || null;
+            shortcutSourcePath = fullPath;
+          } catch (err) {
+            console.warn('readUrlShortcut error', err);
+            openSimpleErrorModal((langs[lang] || langs['en']).shortcutResolveFailed || 'Failed to resolve the shortcut target.');
+            continue;
+          }
+        } else {
+          openSimpleErrorModal((langs[lang] || langs['en']).shortcutResolveNotAvailable || 'Shortcut resolution is not available in this environment.');
+          continue;
+        }
+      }
 
       let destSectionId = null;
       if (hoveredSectionId) {
@@ -183,8 +243,16 @@ export function initDragAndDrop() {
         continue;
       }
 
-      const suggestedName = basenameFromPath(exePath);
-      itemsToAdd.push({ destSectionId, exePath, name: suggestedName });
+      const suggestedName = ext === 'url'
+        ? basenameFromPath(fullPath)
+        : basenameFromPath(exePath);
+      itemsToAdd.push({
+        destSectionId,
+        exePath,
+        name: suggestedName,
+        icon: shortcutIcon,
+        sourceShortcutPath: shortcutSourcePath
+      });
     }
 
     if (!itemsToAdd.length) {
@@ -205,7 +273,7 @@ export function initDragAndDrop() {
           id: genId(),
           name: it.name || basenameFromPath(it.exePath),
           exePath: it.exePath,
-          icon: typeof fallbackIconAbsolutePath !== 'undefined' ? fallbackIconAbsolutePath : null,
+          icon: it.icon || null,
           sectionId: destSec.id,
           launchCount: 0
         };

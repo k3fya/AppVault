@@ -117,3 +117,28 @@
   background: var(--bg-light); 
 }
 .action-btn img { width:16px; height:16px; opacity:0.95; filter: var(--icon-filter) }
+
+
+#btnCheckUpdates.btn-disabled-wait,
+#btnCheckUpdates.is-disabled {
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+#btnCheckUpdates.btn-disabled-wait:hover,
+#btnCheckUpdates.is-disabled:hover,
+#btnCheckUpdates.btn-disabled-wait:active,
+#btnCheckUpdates.is-disabled:active,
+#btnCheckUpdates.btn-disabled-wait:focus,
+#btnCheckUpdates.is-disabled:focus {
+  transform: none !important;
+  box-shadow: none !important;
+  background: var(--bg-medium);
+  border-color: var(--border);
+  filter: none !important;
+}
+
+#btnCheckUpdates.btn-disabled-wait img,
+#btnCheckUpdates.is-disabled img {
+  opacity: 0.7;
+}

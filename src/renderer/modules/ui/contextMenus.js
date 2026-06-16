@@ -51,6 +51,54 @@ export function openShortcutMenu(sc, event) {
   const header = createMenuHeader({ iconSrc: sc.icon || '../assets/avlogo.png', title: sc.name || 'NotFound' });
   menuEl.appendChild(header);
 
+  function isSteamShortcutUrl(raw) {
+    try {
+      const u = new URL(raw);
+      return u.protocol === 'steam:';
+    } catch {
+      return typeof raw === 'string' && raw.trim().toLowerCase().startsWith('steam://');
+    }
+  }
+
+  const isSteamShortcut = isSteamShortcutUrl(sc.exePath);
+
+  // open in explorer
+  if (sc.exePath && !isSteamShortcut) {
+    header.classList.add('has-folder-btn');
+    
+    const folderBtn = document.createElement('button');
+    folderBtn.className = 'hdr-folder-btn';
+    folderBtn.type = 'button';
+    
+    const folderTooltip = (langs[lang] || langs['en']).openInExplorer || 'Open in Explorer';
+    folderBtn.setAttribute('aria-label', folderTooltip);
+    tooltipTitle(folderTooltip)(folderBtn);
+    
+    const folderIcon = document.createElement('img');
+    folderIcon.src = '../assets/icons/folder.svg';
+    folderIcon.alt = '';
+    folderBtn.appendChild(folderIcon);
+    
+    folderBtn.onclick = async (ev) => {
+      ev.stopPropagation();
+      try {
+        if (window.api && typeof window.api.openInExplorer === 'function') {
+          const result = await window.api.openInExplorer(sc.exePath);
+          if (result && typeof result === 'string' && result.length > 0) {
+            openSimpleErrorModal(result);
+          }
+        } else {
+          openSimpleErrorModal((langs[lang] || langs['en']).openInExplorerNotAvailable || 'Open in explorer is not available in this environment.');
+        }
+      } catch (err) {
+        console.error('openInExplorer error', err);
+        openSimpleErrorModal((langs[lang] || langs['en']).openInExplorerFailed || 'Failed to open folder in explorer.');
+      }
+    };
+    
+    header.appendChild(folderBtn);
+  }
+
   // helpers & state for this menu
   let submenu = null;
   let hideTimer = null;

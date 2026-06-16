@@ -29,7 +29,7 @@ import { save, handleIncomingData, applyTheme } from '../../app/persistence.js';
 import { openConfirmModal } from './confirm.js';
 import { openSimpleErrorModal } from './error.js';
 
-// -------------------------------------------- probably not stable
+// --------------------------------------------
 function getSemverLib() {
   try {
     const semver = (typeof require === 'function') ? require('semver') : (window && window.require ? window.require('semver') : null);
@@ -78,7 +78,6 @@ function persistUpdateStatus(textHtml, stateClass) {
   data.settings = data.settings || {};
   data.settings.updateStatusText = String(textHtml || '');
   data.settings.updateStatusClass = stateClass || '';
-  data.settings.latestUpdateCheck = Date.now();
   try {
     if (window.api && typeof window.api.saveData === 'function') {
       window.api.saveData(data).catch(()=>{});
@@ -89,6 +88,20 @@ function persistUpdateStatus(textHtml, stateClass) {
   } catch (e) { console.warn('persistUpdateStatus save failed', e); }
 }
 
+function getNextUpdateCheckAt() {
+  return Number(
+    data?.settings?.cache?.updateCheck?.nextCheckAt || 0
+  );
+}
+
+function formatRemaining(ms) {
+  const totalMin = Math.ceil(ms / 60000);
+  const hours = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+  if (hours > 0) return `${hours}h ${mins}m`;
+  return `${mins}m`;
+}
+
 function setUpdateStatusUI(statusEl, textHtml, stateClass) {
   if (!statusEl) return;
   statusEl.innerHTML = textHtml || '';
@@ -97,129 +110,102 @@ function setUpdateStatusUI(statusEl, textHtml, stateClass) {
   persistUpdateStatus(textHtml, stateClass);
 }
 
-function showNetworkNotification(message) {
-  const existing = document.querySelector('.network-notification');
-  if (existing) existing.remove();
-
-  const container = document.getElementById('globalNotifications');
-  if (!container) {
-    console.warn('Global notifications container not found');
-    return;
-  }
-
-  const notif = document.createElement('div');
-  notif.className = 'restart-notification';
-
-  const textEl = document.createElement('span');
-  textEl.className = 'restart-text';
-  textEl.textContent = message || 'Network error';
-
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'restart-close';
-  closeBtn.type = 'button';
-  closeBtn.setAttribute('aria-label', (langs[lang] || langs['en']).close || 'Close');
-  const closeIcon = document.createElement('img');
-  closeIcon.className = 'restart-close-icon';
-  closeIcon.src = '../assets/icons/cross.svg';
-  closeBtn.prepend(closeIcon);
-
-  notif.appendChild(textEl);
-  notif.appendChild(closeBtn);
-  container.appendChild(notif);
-
-  requestAnimationFrame(() => notif.classList.add('visible'));
-
-  closeBtn.onclick = (e) => {
-    e.stopPropagation();
-    notif.classList.add('hiding');
-    setTimeout(() => { if (notif.parentNode) notif.parentNode.removeChild(notif); }, 300);
-  };
-}
-
 async function checkForUpdatesAndUpdateUI(statusEl) {
   if (!statusEl) return;
 
-  setUpdateStatusUI(statusEl, (langs[lang]||langs['en']).checkingForUpdates || 'Checking for updates...', 'muted');
+  const L = langs[lang] || langs['en'];
+  setUpdateStatusUI(statusEl, L.checkingForUpdates || 'Checking for updates...', 'muted');
 
   try {
     if (!(window.api && typeof window.api.fetchLatestRelease === 'function')) {
-      setUpdateStatusUI(statusEl, (langs[lang]||langs['en']).couldNotCheck || 'Could not check for updates. Try again later.', 'muted');
+      setUpdateStatusUI(statusEl, L.couldNotCheck || 'Could not check for updates.', 'muted');
       return;
     }
 
     const apiRes = await window.api.fetchLatestRelease();
 
-    if (!apiRes) {
-      setUpdateStatusUI(statusEl, (langs[lang]||langs['en']).couldNotCheck || 'Could not check for updates. Try again later.', 'muted');
-      return;
+    if (apiRes?.ok && !apiRes.cached) {
+      const freshData = await window.api.getData();
+      if (freshData?.settings?.cache?.updateCheck) {
+        data.settings = data.settings || {};
+        data.settings.cache = data.settings.cache || {};
+        data.settings.cache.updateCheck = freshData.settings.cache.updateCheck;
+      }
     }
 
-    if (!apiRes.ok) {
-      if (apiRes.error === 'not_found') {
-        const msg = (langs[lang]||langs['en']).noReleasesFound || 'No releases found.';
-        setUpdateStatusUI(statusEl, msg, 'muted');
-        return;
+    if (!apiRes?.ok) {
+      let msg = L.couldNotCheck || 'Could not check for updates. Try again later.';
+      
+      if (apiRes?.error === 'rate_limited') {
+        msg = L.githubRateLimit || 'Too many requests. Please try again later.';
+        if (apiRes.resetAt) {
+          const resetDate = new Date(apiRes.resetAt);
+          const timeStr = resetDate.toLocaleTimeString(lang === 'ru' ? 'ru-RU' : 'en-US', { 
+            hour: '2-digit', minute: '2-digit' 
+          });
+          msg += ` (${L.tryAfter || 'Try after'} ${timeStr})`;
+        }
+      } else if (apiRes?.error === 'timeout') {
+        msg = L.updateCheckTimeout || 'Update check timed out.';
+      } else if (apiRes?.error === 'network') {
+        msg = L.networkError || 'Network error. Check your internet connection.';
+      } else if (apiRes?.error === 'not_found') {
+        msg = L.noReleasesFound || 'No releases found.';
       }
-
-      if (apiRes.error === 'network') {
-        // showNetworkNotification((langs[lang]||langs['en']).noInternet || 'There may be no internet connection — cannot check for updates');
-        setUpdateStatusUI(statusEl, (langs[lang]||langs['en']).couldNotCheck || 'Could not check for updates. Try again later.', 'muted');
-        return;
-      }
-      setUpdateStatusUI(statusEl, (langs[lang]||langs['en']).couldNotCheck || 'Could not check for updates. Try again later.', 'muted');
-      return;
-    }
-
-    const j = apiRes.json || {};
-    const latestTag = String(j.tag_name || j.name || '');
-    const latestUrl = j.html_url || (`https://github.com/k3fya/AppVault/releases${latestTag ? '/tag/' + encodeURIComponent(latestTag) : ''}`);
-    const latestVer = normalizeSemverStr(latestTag);
-    const currentVer = normalizeSemverStr((app && app.version) ? app.version : (data.settings && data.settings.version) || '');
-
-    if (!latestVer) {
-      const msg = (langs[lang]||langs['en']).noReleasesFound || 'No releases found.';
+      
       setUpdateStatusUI(statusEl, msg, 'muted');
       return;
     }
 
-    const cmp = compareVersions(latestVer, currentVer);
+    if (apiRes.cached) {
+      return;
+    }
+
+    const latestTag = normalizeSemverStr(apiRes.tagName);
+    const latestUrl = apiRes.htmlUrl || 'https://github.com/k3fya/AppVault/releases/latest';
+    const currentVer = normalizeSemverStr((app?.version) || (data.settings?.version) || '0.0.0');
+
+    if (!latestTag) {
+      setUpdateStatusUI(statusEl, L.noReleasesFound || 'No releases found.', 'muted');
+      return;
+    }
+
+    const cmp = compareVersions(latestTag, currentVer);
+    
     if (cmp === 0) {
-      const txt = (langs[lang]||langs['en']).latestInstalled || 'You have the latest version of the application';
-      setUpdateStatusUI(statusEl, txt, 'ok');
+      setUpdateStatusUI(statusEl, L.latestInstalled || 'You have the latest version.', 'ok');
     } else if (cmp > 0) {
       let majorDiff = 0;
       const semver = getSemverLib();
-      if (semver && semver.valid(latestVer) && semver.valid(currentVer)) {
-        try { majorDiff = semver.major(latestVer) - semver.major(currentVer); } catch(e){ majorDiff = 0; }
+      if (semver?.valid(latestTag) && semver?.valid(currentVer)) {
+        try { majorDiff = semver.major(latestTag) - semver.major(currentVer); } catch(e){}
       } else {
-        const lp = (latestVer||'0.0.0').split('.').map(n=>parseInt(n||'0',10) || 0);
-        const cp = (currentVer||'0.0.0').split('.').map(n=>parseInt(n||'0',10) || 0);
-        majorDiff = (lp[0]||0) - (cp[0]||0);
+        const lp = latestTag.split('.').map(n => parseInt(n) || 0);
+        const cp = currentVer.split('.').map(n => parseInt(n) || 0);
+        majorDiff = (lp[0] || 0) - (cp[0] || 0);
       }
 
+      const hereText = L.downloadHere || 'here';
+      const link = `<a href="${latestUrl}" target="_blank" rel="noopener noreferrer" class="update-download-link">${hereText}</a>`;
+      
       if (majorDiff >= 2) {
-        const tpl = (langs[lang]||langs['en']).updateRecommended || 'Recommended update available — download it {0}';
-        const hereText = (langs[lang]||langs['en']).downloadHere || 'here';
-        const link = `<a href="${latestUrl}" target="_blank" rel="noopener noreferrer" class="update-download-link">${hereText}</a>`;
+        const tpl = L.updateRecommended || 'Recommended update available — download it {0}';
         setUpdateStatusUI(statusEl, tpl.replace('{0}', link), 'recommended');
       } else {
-        const tpl = (langs[lang]||langs['en']).updateAvailable || 'Update available — download it {0}';
-        const hereText = (langs[lang]||langs['en']).downloadHere || 'here';
-        const link = `<a href="${latestUrl}" target="_blank" rel="noopener noreferrer" class="update-download-link">${hereText}</a>`;
+        const tpl = L.updateAvailable || 'Update available — download it {0}';
         setUpdateStatusUI(statusEl, tpl.replace('{0}', link), 'available');
       }
     } else {
-      const txt = (langs[lang]||langs['en']).latestInstalled || 'You have the latest version of the application';
-      setUpdateStatusUI(statusEl, txt, 'ok');
+      setUpdateStatusUI(statusEl, L.latestInstalled || 'You have the latest version.', 'ok');
     }
 
   } catch (err) {
-    console.warn('unexpected error in checkForUpdatesAndUpdateUI:', err);
-    setUpdateStatusUI(statusEl, (langs[lang]||langs['en']).couldNotCheck || 'Could not check for updates. Try again later.', 'muted');
+    console.warn('checkForUpdatesAndUpdateUI error:', err);
+    setUpdateStatusUI(statusEl, L.couldNotCheck || 'Could not check for updates.', 'muted');
   }
 }
 
-// -------------------------------------------- probably not stable
+// --------------------------------------------
 
 function showRestartNotification() {
   const existing = document.querySelector('.restart-notification');
@@ -614,7 +600,7 @@ export function openSettingsModal() {
 
         <div class="about-row">
           <div class="row-label">${(langs[lang]||langs['en']).versionLabel || 'Version'}</div>
-          <div class="row-value">${ (app && app.version) || '0.2.1' }</div>
+          <div class="row-value">${ (app && app.version) || '0.3.0' }</div>
         </div>
 
         <div class="about-row">
@@ -754,6 +740,32 @@ export function openSettingsModal() {
     const lastEl = document.getElementById('updLastCheck');
     const statusEl = document.getElementById('updStatus');
 
+    function syncUpdateButtonState() {
+      if (!btn) return;
+
+      const nextAt = getNextUpdateCheckAt();
+      const now = Date.now();
+      const blocked = nextAt > now;
+
+      btn.disabled = blocked;
+      btn.classList.toggle('is-disabled', blocked);
+
+      if (blocked) {
+        const remaining = formatRemaining(nextAt - now);
+        const waitMsgTpl = (langs[lang] || langs['en']).updatesWait || 'Проверка будет доступна через {time}';
+        const waitMsg = waitMsgTpl.replace('{time}', remaining);
+
+        btn.setAttribute('aria-label', waitMsg);
+        
+        try {
+          tooltipTitle(waitMsg)(btn);
+        } catch (e) {
+          console.warn('tooltipTitle failed for update button', e);
+        }
+      }
+    }
+    syncUpdateButtonState();
+
     const ts = data.settings && data.settings.latestUpdateCheck;
     if (lastEl) lastEl.textContent = renderLastCheckText(ts);
     if (statusEl) {
@@ -771,6 +783,11 @@ export function openSettingsModal() {
     if (btn) {
       btn.onclick = async (ev) => {
         ev?.preventDefault();
+
+        if (Date.now() < getNextUpdateCheckAt()) {
+          syncUpdateButtonState();
+          return;
+        }
 
         const now = Date.now();
         data.settings = data.settings || {};
@@ -793,6 +810,7 @@ export function openSettingsModal() {
 
         try {
           await checkForUpdatesAndUpdateUI(statusEl);
+          syncUpdateButtonState();
         } catch (e) {
           console.warn('checkForUpdatesAndUpdateUI failed', e);
         }
@@ -847,6 +865,10 @@ export function openSettingsModal() {
         panel_about.style.display = 'block';
         panel_update.style.display = 'block';
         settingsTitle.textContent = (langs[lang]||langs['en']).abtProgramTitle || 'About the app';
+        
+        if (typeof syncUpdateButtonState === 'function') {
+          syncUpdateButtonState();
+        }
       }
     };
     item.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); } };

@@ -15,6 +15,18 @@
     "scale": "1.00",
     "sidebarPosition": "left",
     "sidebarWidth": 215,
-    "shortcutsLayout": "list"
+    "shortcutsLayout": "list",
+    "cache": {
+      "updateCheck": {
+        "fetchedAt": 0,
+        "nextCheckAt": 0,
+        "etag": null,
+        "latestTag": "",
+        "latestName": "",
+        "htmlUrl": "",
+        "publishedAt": null,
+        "rateLimitedUntil": 0
+      }
+    }
   }
 }

@@ -32,6 +32,8 @@ contextBridge.exposeInMainWorld('api', {
   extractIcon: (exePath) => ipcRenderer.invoke('extract-icon', exePath),
   fileExists: (path) => ipcRenderer.invoke('fileExists', path),
   resolveShortcut: (p) => ipcRenderer.invoke('resolve-shortcut', p),
+  openInExplorer: (filePath) => ipcRenderer.invoke('openInExplorer', filePath),
+  readUrlShortcut: (p) => ipcRenderer.invoke('read-url-shortcut', p),
   launchShortcut: (path) => ipcRenderer.invoke('launchShortcut', path),
   launchAsAdmin: (path) => ipcRenderer.invoke('launch-as-admin', path),
   openExternal: (url) => ipcRenderer.invoke('open-external', url),

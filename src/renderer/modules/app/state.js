@@ -47,7 +47,7 @@ export let data = {
 
 export let app = {
   name: 'AppVault',
-  version: '0.2.1',
+  version: '0.3.0',
   electronVersion: '26.0.0',
   gitRepositoryLink: 'https://github.com/k3fya/AppVault',
   supportLink: 'https://discord.gg/DDJvjdnJ8t'
@@ -80,7 +80,7 @@ export function setWindowLoaded(v) { windowLoaded = !!v; }
 export const SPLASH_FORCE_HIDE_MS = 8000;
 
 export const MAX_SECTION_NAME = 25;
-export const MAX_SHORTCUT_NAME = 20;
+export const MAX_SHORTCUT_NAME = 30;
 
 
 window.__showAppError = (err) => {

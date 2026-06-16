@@ -44,6 +44,7 @@
 }
 
 .custom-context-menu .menu-header {
+  position: relative;
   cursor: default;
   display: flex;
   align-items: center;
@@ -73,6 +74,46 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.custom-context-menu .hdr-folder-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition);
+  z-index: 1;
+}
+
+.custom-context-menu .hdr-folder-btn img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  pointer-events: none;
+  filter: var(--icon-filter);
+}
+
+.custom-context-menu .hdr-folder-btn:hover,
+.custom-context-menu .hdr-folder-btn:focus {
+  background: var(--border);
+  outline: none;
+}
+
+.custom-context-menu .hdr-folder-btn:focus-visible {
+  outline: var(--focus-outline) solid var(--accent);
+  outline-offset: -2px;
+}
+
+.custom-context-menu .menu-header.has-folder-btn .hdr-title {
+  margin-right: 48px;
 }
 
 .custom-context-menu .context-item {

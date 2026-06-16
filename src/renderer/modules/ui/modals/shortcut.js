@@ -36,6 +36,13 @@ export async function openShortcutModal(sectionId, sc = {}) {
   const editingOriginal = originalPair ? originalPair.sc : null;
   const originalSection = originalPair ? originalPair.sec : null;
 
+  const isSteamUrl = (v) => typeof v === 'string' && /^steam:\/\//i.test(v.trim());
+  async function loadIconFromSourceShortcut() {
+    if (!sc.sourceShortcutPath || !window.api?.readUrlShortcut) return null;
+    const meta = await window.api.readUrlShortcut(sc.sourceShortcutPath);
+    return meta?.icon || null;
+  }
+
   let fallbackIconAbsolutePath = '../assets/avlogo.png'; // fallback
   if (window.api?.getFallbackIconPath) {
     try {
@@ -125,8 +132,10 @@ export async function openShortcutModal(sectionId, sc = {}) {
   scExeInput.addEventListener('blur', async () => {
     const currentReal = scIconInput.dataset.realValue || '';
     const currentLooksLikeImage = !!(currentReal && (/^data:image\//i.test(currentReal) || isValidImagePath(currentReal)));
+    
+    const isSteamUrl = scExeInput.value && scExeInput.value.trim().startsWith('steam://');
 
-    if (!currentLooksLikeImage && scExeInput.value && isValidExe(scExeInput.value)) {
+    if (!currentLooksLikeImage && !isSteamUrl && scExeInput.value && isValidExe(scExeInput.value)) {
       try {
         const icon = await window.api.extractIcon?.(scExeInput.value);
         if (icon) {
@@ -162,8 +171,10 @@ export async function openShortcutModal(sectionId, sc = {}) {
 
         const currentReal = scIconInput.dataset.realValue || '';
         const currentLooksLikeImage = !!(currentReal && (/^data:image\//i.test(currentReal) || isValidImagePath(currentReal)));
+        
+        const isSteamUrl = chosenPath && chosenPath.trim().startsWith('steam://');
 
-        if (!currentLooksLikeImage) {
+        if (!currentLooksLikeImage && !isSteamUrl) {
           if (iconFromExe) {
             scIconInput.dataset.realValue = iconFromExe;
             scIconInput.value = (langs[lang] || langs['en']).iconFromExeLabel || 'Program icon';
@@ -215,40 +226,35 @@ export async function openShortcutModal(sectionId, sc = {}) {
     }
   };
 
-  if (useExeIconBtn) {
-    useExeIconBtn.onclick = async () => {
-      try {
-        let icon = null;
+  useExeIconBtn.onclick = async () => {
+    try {
+      let icon = null;
 
-        if (scExeInput.value && isValidExe(scExeInput.value) && window.api && typeof window.api.extractIcon === 'function') {
-          try {
-            icon = await window.api.extractIcon(scExeInput.value);
-          } catch (e) {
-            console.warn('extractIcon in useExeIconBtn failed:', e);
-            icon = null;
-          }
-        }
+      if (isSteamUrl(scExeInput.value)) {
+        icon = await loadIconFromSourceShortcut();
+      } else if (scExeInput.value && isValidExe(scExeInput.value) && window.api && typeof window.api.extractIcon === 'function') {
+        icon = await window.api.extractIcon(scExeInput.value);
+      }
 
-        if (icon) {
-          scIconInput.dataset.realValue = icon;
-          scIconInput.value = (langs[lang] || langs['en']).iconFromExeLabel || 'Program icon';
-          currentExtractedIcon = icon;
-        } else {
-          scIconInput.dataset.realValue = fallbackIconAbsolutePath;
-          scIconInput.value = (langs[lang] || langs['en']).defaultIconPlaceholder || 'The standard icon will be used';
-          currentExtractedIcon = null;
-        }
-
-        clearModalErrors(shortcutModal);
-      } catch (err) {
-        console.error('useExeIconBtn handler error:', err);
+      if (icon) {
+        scIconInput.dataset.realValue = icon;
+        scIconInput.value = (langs[lang] || langs['en']).iconFromExeLabel || 'Program icon';
+        currentExtractedIcon = icon;
+      } else {
         scIconInput.dataset.realValue = fallbackIconAbsolutePath;
         scIconInput.value = (langs[lang] || langs['en']).defaultIconPlaceholder || 'The standard icon will be used';
         currentExtractedIcon = null;
-        clearModalErrors(shortcutModal);
       }
-    };
-  }
+
+      clearModalErrors(shortcutModal);
+    } catch (err) {
+      console.error('useExeIconBtn handler error:', err);
+      scIconInput.dataset.realValue = fallbackIconAbsolutePath;
+      scIconInput.value = (langs[lang] || langs['en']).defaultIconPlaceholder || 'The standard icon will be used';
+      currentExtractedIcon = null;
+      clearModalErrors(shortcutModal);
+    }
+  };
 
   // show modal
   try { hideAllTooltips(); } catch(e) {}
@@ -303,7 +309,7 @@ export async function openShortcutModal(sectionId, sc = {}) {
     const errors = [];
     if (!name) errors.push((langs[lang] || langs['en']).enterValidName || 'Please enter a valid shortcut name.');
     if (!exePath) errors.push((langs[lang] || langs['en']).enterExePath || 'Please provide a path to the .exe file.');
-    else if (!isValidExe(exePath)) errors.push((langs[lang] || langs['en']).exeMustBeExe || 'The selected file must have .exe extension.');
+    else if (!exePath.startsWith('steam://') && !isValidExe(exePath)) errors.push((langs[lang] || langs['en']).exeMustBeExe || 'The selected file must have .exe extension.');
 
     let iconReal = scIconInput.dataset.realValue || null;
     if (!iconReal && scIconInput.value && (isValidImagePath(scIconInput.value) || /^data:image\//i.test(scIconInput.value))) {
@@ -320,7 +326,8 @@ export async function openShortcutModal(sectionId, sc = {}) {
     }
 
     let finalIcon = iconReal || null;
-    if (!finalIcon) {
+    const isSteamUrl = exePath && exePath.startsWith('steam://');
+    if (!finalIcon && !isSteamUrl) {
       try {
         const extIcon = await getIconFromExe(exePath);
         if (extIcon) finalIcon = extIcon;

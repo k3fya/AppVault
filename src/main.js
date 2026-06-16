@@ -242,6 +242,15 @@ function isSafeUrl(raw) {
   }
 }
 
+function isLaunchableUrl(raw) {
+  try {
+    const u = new URL(raw)
+    return ['steam:', 'steamLink:', 'http:', 'https:'].includes(u.protocol);
+  } catch {
+    return false
+  }
+}
+
 function loadData() {
   if (!fs.existsSync(dataFile)) {
     const init = { sections: [], settings: {} };
@@ -276,8 +285,9 @@ function saveData(data) {
       latestUpdateCheck: s.latestUpdateCheck,
       updateStatusText: s.updateStatusText,
       updateStatusClass: s.updateStatusClass,
+      cache: s.cache,
       ...Object.fromEntries(Object.entries(s).filter(([k]) =>
-        !['window','frequentCollapsed','frequentSort','lang','startWithSystem','trayOnClose','showDiscordStatus','hotkey','theme','scale','sidebarPosition','sidebarWidth','shortcutsLayout','latestUpdateCheck','updateStatusText','updateStatusClass'].includes(k)
+        !['window','frequentCollapsed','frequentSort','lang','startWithSystem','trayOnClose','showDiscordStatus','hotkey','theme','scale','sidebarPosition','sidebarWidth','shortcutsLayout','latestUpdateCheck','updateStatusText','updateStatusClass', 'cache'].includes(k)
       ))
     };
     data = { ...data, settings: ordered };
@@ -552,20 +562,105 @@ ipcMain.handle('fileExists', async (_ev, p) => {
   }
 });
 
+ipcMain.handle('read-url-shortcut', async (_e, filePath) => {
+  try {
+    if (!filePath) return null;
+
+    const content = await fs.promises.readFile(filePath, 'utf8');
+    const lines = content.split(/\r?\n/);
+
+    let url = null;
+    let iconFileRaw = null;
+    let iconLocationRaw = null;
+    let iconIndex = null;
+
+    for (const line of lines) {
+      const mUrl = line.match(/^\s*URL\s*=\s*["']?(.*?)["']?\s*$/i);
+      if (mUrl && mUrl[1]) url = mUrl[1].trim();
+
+      const mIconFile = line.match(/^\s*IconFile\s*=\s*["']?(.*?)["']?\s*$/i);
+      if (mIconFile && mIconFile[1]) iconFileRaw = mIconFile[1].trim();
+
+      const mIconLocation = line.match(/^\s*IconLocation\s*=\s*["']?(.*?)["']?\s*$/i);
+      if (mIconLocation && mIconLocation[1]) iconLocationRaw = mIconLocation[1].trim();
+
+      const mIconIndex = line.match(/^\s*IconIndex\s*=\s*([-\d]+)\s*$/i);
+      if (mIconIndex && mIconIndex[1] != null) iconIndex = Number(mIconIndex[1]);
+    }
+
+    if (!url) return null;
+
+    const normalizeQuoted = (s) => String(s || '').replace(/^"(.*)"$/, '$1').trim();
+    const resolveLocalPath = (raw) => {
+      raw = normalizeQuoted(raw);
+      if (!raw) return null;
+      if (/^[a-zA-Z]:[\\/]/.test(raw) || raw.startsWith('\\\\')) return raw;
+      return path.resolve(path.dirname(filePath), raw);
+    };
+
+    let iconPath = resolveLocalPath(iconFileRaw);
+    if (!iconPath && iconLocationRaw) {
+      const loc = normalizeQuoted(iconLocationRaw);
+      const comma = loc.lastIndexOf(',');
+      const pathPart = comma > 0 ? loc.slice(0, comma).trim() : loc;
+      const idxPart = comma > 0 ? loc.slice(comma + 1).trim() : null;
+      if (idxPart !== null && iconIndex == null && /^-?\d+$/.test(idxPart)) {
+        iconIndex = Number(idxPart);
+      }
+      iconPath = resolveLocalPath(pathPart);
+    }
+
+    let icon = null;
+    if (iconPath && fs.existsSync(iconPath)) {
+      try {
+        if (/\.(png|jpg|jpeg|webp|gif|bmp|ico|svg)$/i.test(iconPath)) {
+          icon = iconPath;
+        } else {
+          let nimg = await app.getFileIcon(iconPath, { size: 'large' });
+          if ((!nimg || nimg.isEmpty()) && iconPath) {
+            nimg = nativeImage.createFromPath(iconPath);
+          }
+          if (nimg && !nimg.isEmpty()) {
+            icon = nimg.resize({ width: 128, height: 128, quality: 'best' }).toDataURL();
+          }
+        }
+      } catch (e) {
+        console.warn('read-url-shortcut icon load failed', e);
+      }
+    }
+
+    return {
+      url: url.trim(),
+      icon,
+      iconPath,
+      iconIndex,
+      isSteam: /^steam:\/\//i.test(url.trim())
+    };
+  } catch (e) {
+    console.warn('read-url-shortcut failed', e);
+    return null;
+  }
+});
+
 ipcMain.handle('launchShortcut', async (_e, exePath, opts = {}) => {
+  let lang = 'en';
   try {
     const d = loadData();
-    const lang = d?.settings?.lang || 'en';
+    lang = d?.settings?.lang || 'en';
     const msgPrefix = t('launchFailed', lang) || 'Failed to launch the application';
     const fileNotFound = t('launchFileNotFound', lang) || 'The application could not be started. Please check the file path.';
 
     if (!exePath) return `${msgPrefix}: ${t('noPathForShortcut', lang) || 'No path specified for this shortcut.'}`;
 
-    try {
-      const stat = await fs.promises.stat(exePath);
-      if (!stat.isFile()) return fileNotFound;
-    } catch (err) {
-      return fileNotFound;
+    const isUrl = isLaunchableUrl(exePath);
+
+    if (!isUrl) {
+      try {
+        const stat = await fs.promises.stat(exePath);
+        if (!stat.isFile()) return fileNotFound;
+      } catch (err) {
+        return fileNotFound;
+      }
     }
 
     const calledFromTray = !!(opts && opts.fromTray === true);
@@ -573,52 +668,58 @@ ipcMain.handle('launchShortcut', async (_e, exePath, opts = {}) => {
 
     let openResult = '';
 
-    if (!calledFromTray && !forceDetached) {
+    if (isUrl) {
       try {
-        openResult = await shell.openPath(exePath);
+        await shell.openExternal(exePath);
+        openResult = ''; // success
       } catch (e) {
         openResult = String(e && e.message ? e.message : e || '');
       }
     } else {
-      openResult = 'detached-request';
-    }
-
-    if (openResult && openResult.length > 0) {
-      try {
-        const safeExePath = String(exePath).replace(/"/g, '""');
-        const argsPart = (opts && Array.isArray(opts.exeArgs) && opts.exeArgs.length)
-          ? ' ' + opts.exeArgs.map(a => `"${String(a).replace(/"/g, '""')}"`).join(' ')
-          : '';
-
-        const ComSpec = process.env.ComSpec || path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'cmd.exe');
-        const cmd = `start "" "${safeExePath}"${argsPart}`;
-
-        const child = exec(cmd, {
-          windowsHide: true,
-          detached: true,
-          stdio: 'ignore'
-        }, (err, stdout, stderr) => {
-          if (err) {
-            try { console.warn('launchShortcut: cmd start exec error', err, stdout, stderr); } catch(e){}
-          }
-        });
-
-        if (child && typeof child.unref === 'function') {
-          try { child.unref(); } catch(e) {}
+      if (!calledFromTray && !forceDetached) {
+        try {
+          openResult = await shell.openPath(exePath);
+        } catch (e) {
+          openResult = String(e && e.message ? e.message : e || '');
         }
+      } else {
+        openResult = 'detached-request';
+      }
 
-        openResult = '';
-      } catch (err) {
-        const d = loadData();
-        const lang = d?.settings?.lang || 'en';
-        const generalErr = err && err.message ? String(err.message) : t('unknownError', lang) || 'Unknown error';
-        const errMsg = `${t('launchFailed', lang) || 'Failed to launch the application'}: ${generalErr}`;
+      if (openResult && openResult.length > 0) {
+        try {
+          const safeExePath = String(exePath).replace(/"/g, '""');
+          const argsPart = (opts && Array.isArray(opts.exeArgs) && opts.exeArgs.length)
+            ? ' ' + opts.exeArgs.map(a => `"${String(a).replace(/"/g, '""')}"`).join(' ')
+            : '';
 
-        if (mainWindow) { mainWindow.show(); mainWindow.focus(); }
-        BrowserWindow.getAllWindows().forEach(w => {
-          try { w.webContents.send('app-error', { source: 'main', message: errMsg, stack: err?.stack || null }); } catch(e){}
-        });
-        return errMsg;
+          const cmd = `start "" "${safeExePath}"${argsPart}`;
+
+          const child = exec(cmd, {
+            windowsHide: true,
+            detached: true,
+            stdio: 'ignore'
+          }, (err, stdout, stderr) => {
+            if (err) {
+              try { console.warn('launchShortcut: cmd start exec error', err, stdout, stderr); } catch(e){}
+            }
+          });
+
+          if (child && typeof child.unref === 'function') {
+            try { child.unref(); } catch(e) {}
+          }
+
+          openResult = '';
+        } catch (err) {
+          const generalErr = err && err.message ? String(err.message) : t('unknownError', lang) || 'Unknown error';
+          const errMsg = `${t('launchFailed', lang) || 'Failed to launch the application'}: ${generalErr}`;
+
+          if (mainWindow) { mainWindow.show(); mainWindow.focus(); }
+          BrowserWindow.getAllWindows().forEach(w => {
+            try { w.webContents.send('app-error', { source: 'main', message: errMsg, stack: err?.stack || null }); } catch(e){}
+          });
+          return errMsg;
+        }
       }
     }
 
@@ -668,13 +769,52 @@ ipcMain.handle('launchShortcut', async (_e, exePath, opts = {}) => {
 });
 
 ipcMain.handle('launch-as-admin', async (event, exePath, opts = {}) => {
+  let lang = 'en';
   try {
     const d = loadData();
-    const lang = d?.settings?.lang || 'en';
+    lang = d?.settings?.lang || 'en';
     const msgPrefix = t('launchFailed', lang) || 'Failed to launch the application';
     const fileNotFound = t('launchFileNotFound', lang) || 'The application could not be started. Please check the file path.';
 
     if (!exePath) return `${msgPrefix}: ${t('noPathForShortcut', lang) || 'No path specified for this shortcut.'}`;
+
+    const isUrl = isLaunchableUrl(exePath);
+
+    if (isUrl) {
+      try {
+        await shell.openExternal(exePath);
+      } catch (e) {
+        return (e && e.message) ? String(e.message) : 'Failed to open URL';
+      }
+
+      const calledFromTray = !!(opts && opts.fromTray === true);
+      if (!calledFromTray) {
+        try {
+          const d = loadData();
+          let changed = false;
+          for (const sec of (d.sections || [])) {
+            for (const sc of (sec.shortcuts || [])) {
+              if (sc.exePath === exePath) {
+                sc.launchCount = (sc.launchCount || 0) + 1;
+                changed = true;
+                break;
+              }
+            }
+            if (changed) break;
+          }
+          if (changed) {
+            saveData(d);
+            try { updateTrayContent().catch(() => {}); } catch(e){}
+            BrowserWindow.getAllWindows().forEach(w => {
+              try { w.webContents.send('data-updated-from-main', d); } catch(e){}
+            });
+          }
+        } catch (e) {
+          console.warn('Failed to increment launchCount (URL launch):', e);
+        }
+      }
+      return '';
+    }
 
     try {
       const stat = await fs.promises.stat(exePath);
@@ -814,6 +954,23 @@ ipcMain.handle('resolve-shortcut', async (_e, shortcutPath) => {
   }
 });
 
+ipcMain.handle('openInExplorer', async (event, exePath) => {
+  try {
+    if (!fs.existsSync(exePath)) {
+      const d = loadData();
+      const lang = d?.settings?.lang || 'en';
+      const msg = t('fileNotFoundExplorer', lang) || 'File not found';
+      return `${msg}: ${exePath}`;
+    }
+    
+    await shell.showItemInFolder(exePath);
+    return null;
+  } catch (err) {
+    console.error('openInExplorer error:', err);
+    return err.message || 'Failed to open folder in explorer';
+  }
+});
+
 ipcMain.handle('restart-app', () => {
   try {
     const current = loadData();
@@ -926,47 +1083,221 @@ ipcMain.on('renderer-error', (event, err) => {
   });
 });
 
+const UPDATE_CHECK_CACHE_MS = 12 * 60 * 60 * 1000;
+
+function getUpdateCheckCache() {
+  try {
+    const d = loadData();
+    return d?.settings?.cache?.updateCheck || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function setUpdateCheckCache(cache) {
+  try {
+    const d = loadData();
+
+    if (!d.settings || typeof d.settings !== 'object') {
+      d.settings = {};
+    }
+
+    if (!d.settings.cache || typeof d.settings.cache !== 'object') {
+      d.settings.cache = {};
+    }
+
+    d.settings.cache.updateCheck = cache;
+
+    saveData(d);
+  } catch (e) {
+    console.warn('setUpdateCheckCache failed', e);
+    console.error('❌ Failed to save cache. Path:', dataFile, 'Error:', e?.message || e);
+  }
+}
+
 ipcMain.handle('app:fetch-latest-release', async () => {
+  const now = Date.now();
+
+  const cache = getUpdateCheckCache();
+
+  if (cache?.nextCheckAt && now < Number(cache.nextCheckAt)) {
+    return {
+      ok: true,
+      cached: true,
+      tagName: cache.latestTag || '',
+      name: cache.latestName || '',
+      htmlUrl: cache.htmlUrl || 'https://github.com/k3fya/AppVault/releases/latest',
+      publishedAt: cache.publishedAt || null,
+      nextCheckAt: cache.nextCheckAt
+    };
+  }
+
   return new Promise((resolve) => {
     try {
+      const token = projectConf.githubToken || '';
+
       const request = net.request({
         method: 'GET',
         protocol: 'https:',
         hostname: 'api.github.com',
         path: '/repos/k3fya/AppVault/releases/latest',
         headers: {
-          'User-Agent': 'AppVault-updater',
-          'Accept': 'application/vnd.github.v3+json'
+          'User-Agent': 'AppVault-updater/0.3.0',
+          'Accept': 'application/vnd.github.v3+json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          ...(cache?.etag ? { 'If-None-Match': cache.etag } : {})
         }
       });
 
       let body = '';
+      let timeoutFired = false;
+
+      const timeout = setTimeout(() => {
+        timeoutFired = true;
+
+        try { request.abort(); } catch (e) {}
+
+        resolve({
+          ok: false,
+          error: 'timeout'
+        });
+      }, 8000);
+
       request.on('response', (response) => {
         const status = response.statusCode;
-        response.on('data', (chunk) => { body += chunk.toString('utf8'); });
+        const responseEtag = response.headers?.etag || null;
+
+        if (status === 403 || status === 429) {
+          clearTimeout(timeout);
+
+          const resetTs = response.headers['x-ratelimit-reset'];
+
+          const resetAtMs = resetTs
+            ? parseInt(resetTs, 10) * 1000
+            : (now + UPDATE_CHECK_CACHE_MS);
+
+          setUpdateCheckCache({
+            fetchedAt: now,
+            nextCheckAt: resetAtMs,
+            etag: cache?.etag || null,
+            latestTag: cache?.latestTag || '',
+            latestName: cache?.latestName || '',
+            htmlUrl: cache?.htmlUrl || 'https://github.com/k3fya/AppVault/releases/latest',
+            publishedAt: cache?.publishedAt || null,
+            rateLimitedUntil: resetAtMs
+          });
+
+          resolve({
+            ok: false,
+            error: 'rate_limited',
+            resetAt: new Date(resetAtMs).toISOString()
+          });
+
+          return;
+        }
+
+        if (status === 304 && cache) {
+          clearTimeout(timeout);
+
+          setUpdateCheckCache({
+            ...cache,
+            fetchedAt: now,
+            nextCheckAt: now + UPDATE_CHECK_CACHE_MS,
+            etag: responseEtag || cache.etag || null
+          });
+
+          resolve({
+            ok: true,
+            cached: true,
+            tagName: cache.latestTag || '',
+            name: cache.latestName || '',
+            htmlUrl: cache.htmlUrl || 'https://github.com/k3fya/AppVault/releases/latest',
+            publishedAt: cache.publishedAt || null,
+            nextCheckAt: now + UPDATE_CHECK_CACHE_MS
+          });
+
+          return;
+        }
+
+        response.on('data', (chunk) => {
+          body += chunk.toString('utf8');
+        });
+
         response.on('end', () => {
+          clearTimeout(timeout);
+
+          if (timeoutFired) return;
+
           try {
             if (status >= 200 && status < 300) {
               const json = JSON.parse(body || '{}');
-              resolve({ ok: true, json });
+
+              const successResult = {
+                ok: true,
+                tagName: String(json.tag_name || ''),
+                name: String(json.name || ''),
+                htmlUrl: String(json.html_url || 'https://github.com/k3fya/AppVault/releases/latest'),
+                publishedAt: json.published_at || null
+              };
+
+              setUpdateCheckCache({
+                fetchedAt: now,
+                nextCheckAt: now + UPDATE_CHECK_CACHE_MS,
+                etag: responseEtag || null,
+                latestTag: successResult.tagName,
+                latestName: successResult.name,
+                htmlUrl: successResult.htmlUrl,
+                publishedAt: successResult.publishedAt,
+                rateLimitedUntil: 0
+              });
+
+              resolve(successResult);
+
             } else if (status === 404) {
-              resolve({ ok: false, error: 'not_found', status });
+              resolve({
+                ok: false,
+                error: 'not_found',
+                status
+              });
+
             } else {
-              resolve({ ok: false, error: `http_${status}`, status });
+              resolve({
+                ok: false,
+                error: `http_${status}`,
+                status
+              });
             }
+
           } catch (e) {
-            resolve({ ok: false, error: 'parse_error', message: String(e) });
+            resolve({
+              ok: false,
+              error: 'parse_error',
+              message: String(e)
+            });
           }
         });
       });
 
       request.on('error', (err) => {
-        resolve({ ok: false, error: 'network', message: String(err) });
+        clearTimeout(timeout);
+
+        if (timeoutFired) return;
+
+        resolve({
+          ok: false,
+          error: 'network',
+          message: String(err.message || err)
+        });
       });
 
       request.end();
+
     } catch (err) {
-      resolve({ ok: false, error: 'other', message: String(err) });
+      resolve({
+        ok: false,
+        error: 'other',
+        message: String(err.message || err)
+      });
     }
   });
 });
@@ -1588,28 +1919,33 @@ function updateDiscordActivity() {
     }
 
     const data = loadData();
+    const lang = data?.settings?.lang || 'en';
+    
     const projectConf = loadProjectConf();
     const sectionCount = Array.isArray(data?.sections)
       ? data.sections.filter(s => !s.isAll).length
       : 0;
     const shortcutCount = countTotalShortcuts(data);
     const mostPopular = findMostPopularShortcut(data);
-    const appVersion = projectConf?.app?.version || '0.2.0';
+    const appVersion = projectConf?.app?.version || '0.3.0';
 
     const activity = {
-      details: `Sections: ${sectionCount}`,
-      state: `Shortcuts: ${shortcutCount}`,
+      details: `${t('discordSectionsLabel', lang)} ${sectionCount}`,
+      state: `${t('discordShortcutsLabel', lang)} ${shortcutCount}`,
       largeImageKey: 'avlogo',
       largeImageText: `v${appVersion}`,
       startTimestamp: discordSessionStart,
       instance: false,
       buttons: [
-        { label: 'Download', url: 'https://github.com/k3fya/AppVault/releases/latest' }
+        { 
+          label: t('discordDownloadBtn', lang) || 'Download', 
+          url: 'https://github.com/k3fya/AppVault/releases/latest' 
+        }
       ]
     };
     if (mostPopular) { 
       activity.smallImageKey = 'popa'; 
-      activity.smallImageText = `Most used: ${mostPopular.name}`;
+      activity.smallImageText = `${t('discordMostUsedLabel', lang)} ${mostPopular.name}`;
     }
 
     try {

@@ -64,20 +64,28 @@ export function createShortcutElem(sc, opts = {}) {
       return;
     }
 
-    if (!looksLikeWindowsExePath(sc.exePath)) {
-      openSimpleErrorModal((langs[lang] || langs['en']).launchFileNotFound || 'The application could not be started. Please check the file path.');
-      return;
+    const isSteamUrl = sc.exePath.startsWith('steam://');
+
+    if (!isSteamUrl) {
+      if (!looksLikeWindowsExePath(sc.exePath)) {
+        openSimpleErrorModal((langs[lang] || langs['en']).launchFileNotFound || 'The application could not be started. Please check the file path.');
+        return;
+      }
+
+      try {
+        if (window.api && typeof window.api.fileExists === 'function') {
+          const exists = await window.api.fileExists(sc.exePath);
+          if (!exists) {
+            openSimpleErrorModal((langs[lang] || langs['en']).launchFileNotFound || 'The application could not be started. Please check the file path.');
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('fileExists check error', err);
+      }
     }
 
     try {
-      if (window.api && typeof window.api.fileExists === 'function') {
-        const exists = await window.api.fileExists(sc.exePath);
-        if (!exists) {
-          openSimpleErrorModal((langs[lang] || langs['en']).launchFileNotFound || 'The application could not be started. Please check the file path.');
-          return;
-        }
-      }
-
       if (window.api && typeof window.api.launchShortcut === 'function') {
         const result = await window.api.launchShortcut(sc.exePath);
         if (result && typeof result === 'string' && result.length > 0) {

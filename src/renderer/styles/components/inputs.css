@@ -174,6 +174,7 @@
   border-radius: 8px;
   font-size: 0.85rem;
   pointer-events: none;
+  user-select: none;
   opacity: 0;
   transform: scale(0.98);
   will-change: transform, opacity;
